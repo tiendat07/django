@@ -17,7 +17,7 @@ class Command(BaseCommand):
         trainer = ChatterBotCorpusTrainer(chatbot)
 
         trainer.train(
-            'E:\chatbot\chatbot\train.yml'
+            'chatterbot.corpus.my_corpus'
         )
 
         self.stdout.write(self.style.SUCCESS('Successfully trained!'))
