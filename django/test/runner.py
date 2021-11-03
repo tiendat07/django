@@ -27,6 +27,7 @@ from django.test.utils import (
 )
 from django.utils.crypto import new_hash
 from django.utils.datastructures import OrderedSet
+from django.utils.version import PY37
 from django.utils.deprecation import RemovedInDjango50Warning
 
 try:
@@ -666,14 +667,15 @@ class DiscoverRunner:
                 'Output timings, including database set up and total run time.'
             ),
         )
-        parser.add_argument(
-            '-k', action='append', dest='test_name_patterns',
-            help=(
-                'Only run test methods and classes that match the pattern '
-                'or substring. Can be used multiple times. Same as '
-                'unittest -k option.'
-            ),
-        )
+        if PY37:
+            parser.add_argument(
+                '-k', action='append', dest='test_name_patterns',
+                help=(
+                    'Only run test methods and classes that match the pattern '
+                    'or substring. Can be used multiple times. Same as '
+                    'unittest -k option.'
+                ),
+            )
 
     @property
     def shuffle_seed(self):

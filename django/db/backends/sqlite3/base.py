@@ -26,6 +26,7 @@ from django.utils.crypto import md5
 from django.utils.dateparse import parse_datetime, parse_time
 from django.utils.duration import duration_microseconds
 from django.utils.regex_helper import _lazy_re_compile
+from django.utils.version import PY38
 
 from .client import DatabaseClient
 from .creation import DatabaseCreation
@@ -180,7 +181,9 @@ class DatabaseWrapper(BaseDatabaseWrapper):
                 "settings.DATABASES is improperly configured. "
                 "Please supply the NAME value.")
         kwargs = {
-            'database': settings_dict['NAME'],
+            # TODO: Remove str() when dropping support for PY36.
+            # https://bugs.python.org/issue33496
+            'database': str(settings_dict['NAME']),
             'detect_types': Database.PARSE_DECLTYPES | Database.PARSE_COLNAMES,
             **settings_dict['OPTIONS'],
         }
@@ -204,10 +207,13 @@ class DatabaseWrapper(BaseDatabaseWrapper):
     @async_unsafe
     def get_new_connection(self, conn_params):
         conn = Database.connect(**conn_params)
-        create_deterministic_function = functools.partial(
-            conn.create_function,
-            deterministic=True,
-        )
+        if PY38:
+            create_deterministic_function = functools.partial(
+                conn.create_function,
+                deterministic=True,
+            )
+        else:
+            create_deterministic_function = conn.create_function
         create_deterministic_function('django_date_extract', 2, _sqlite_datetime_extract)
         create_deterministic_function('django_date_trunc', 4, _sqlite_date_trunc)
         create_deterministic_function('django_datetime_cast_date', 3, _sqlite_datetime_cast_date)
